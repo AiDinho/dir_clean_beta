@@ -11,12 +11,15 @@ Created on Tue Jan 03 15:49:34 2017
 ##  TODOS
 ## take options from command line to for directories /optionally take a file which has a list of dirs
 ## efficent backup ,delete files rarely used or accessed ,
+
+## todos save file meta data to
 from configparser import ConfigParser
-from os import walk,path,makedirs,chdir,remove
+from os import walk,path,makedirs,chdir,remove,listdir
 from collections import defaultdict
 from shutil import copy2
 from datetime import datetime
 import errno
+import logging
 
 
 
@@ -86,25 +89,37 @@ def copy_files(files,destination):
 
         
 def movefiles(filedict,base_path):
-    dt = datetime.strftime(datetime.date(datetime.now()),"%Y_%m")
+    time_now = datetime.date(datetime.now())
+    dt = datetime.strftime(time_now,"%Y_%m")
     x = path.split(base_path)
+    file_path = file_dict.keys()
+    no_of_files = len(file_dict.values())
     for j,k in filedict.iteritems():
         
         destination = path.join(x[0],path.sep,x[1],j,dt)
         [copy_files(m,destination) for m in k]
         
         
-        
+    remaining_files =  len([name for name in listdir('.') if path.isfile(name)])
+    print_list = [no_of_files,file_path,remaining_files,datetime.strftime(time_now,"%d/%m/%y %H:%M:%S")]
+    log_Info = "{} files Copied from {} ,no of files not copied {},at-{}".format(*print_list)
+    logging.log(20,log_Info)
 
         #print parser.get('Directories', 'downloads')
 if __name__== "__main__":
+    #LOG_FILENAME = path.join(backup,'dir_clean.log')
+    #logging.basicConfig()
+
     cdict = read_from_config()
-    print cdict
+    #print cdict
     backup = cdict['destination']
     file_dict = parse_dirs(cdict['downloads'])
     chdir(cdict['downloads'])
-    
+    LOG_FILENAME = path.join(backup, 'dir_clean.log')
+    logging.basicConfig( filename=LOG_FILENAME, level=logging.INFO)
+    logging.info('Started Logging')
     movefiles(file_dict,backup)
+    logging.info('Finished Logging')
     
         
     
